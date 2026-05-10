@@ -8,6 +8,7 @@ import type { Mode, Question, QuestionAnswer, TestState } from "@/lib/types";
 import { loadProgress, saveProgress, clearProgress } from "@/lib/storage";
 import { gradeQuestion, isAnswered } from "@/lib/grading";
 import { shuffle } from "@/lib/shuffle";
+import { buildOptionOrders } from "@/lib/optionOrders";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
@@ -27,6 +28,7 @@ const initialState = (mode: Mode, shuffled: boolean): TestState => ({
   shuffled,
   order: buildOrder(ALL_QUESTIONS, shuffled),
   submittedIds: [],
+  optionOrders: buildOptionOrders(ALL_QUESTIONS, shuffled),
 });
 
 const isAutoSubmit = (type: Question["type"]) => type === "truefalse" || type === "single";
@@ -48,6 +50,10 @@ function TestRunner() {
         order: saved.order && saved.order.length > 0 ? saved.order : ALL_QUESTIONS.map((q) => q.id),
         shuffled: saved.shuffled ?? false,
         submittedIds: saved.submittedIds ?? [],
+        optionOrders:
+          saved.optionOrders && Object.keys(saved.optionOrders).length > 0
+            ? saved.optionOrders
+            : buildOptionOrders(ALL_QUESTIONS, saved.shuffled ?? false),
       };
       setState(fixed);
     } else {
@@ -141,6 +147,7 @@ function TestRunner() {
       ...initialState("training", false),
       order: state.shuffled ? shuffle(wrongIds) : wrongIds,
       shuffled: state.shuffled,
+      optionOrders: buildOptionOrders(wrong, state.shuffled),
     });
   };
 
@@ -194,6 +201,7 @@ function TestRunner() {
           <Results
             questions={questionsToShow}
             answers={state.answers}
+            optionOrders={state.optionOrders}
             onRestart={restart}
             onRetryWrong={retryWrong}
             onJumpTo={(i) => {
@@ -261,6 +269,7 @@ function TestRunner() {
           showCorrect={showCorrect}
           index={state.currentIndex}
           total={questionsToShow.length}
+          optionOrder={state.optionOrders[current.id]}
         />
 
         {canCheck && (

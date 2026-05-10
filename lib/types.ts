@@ -69,4 +69,5 @@ export type TestState = {
   order: number[];
   shuffled: boolean;
   submittedIds: number[];
+  optionOrders: Record<number, number[]>;
 };

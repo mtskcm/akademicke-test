@@ -1,6 +1,12 @@
 "use client";
 
-import type { Question, QuestionAnswer } from "@/lib/types";
+import type {
+  MatchingQuestion,
+  MultiChoiceQuestion,
+  Question,
+  QuestionAnswer,
+  SingleChoiceQuestion,
+} from "@/lib/types";
 import { TrueFalse } from "./types/TrueFalse";
 import { SingleChoice } from "./types/SingleChoice";
 import { MultiChoice } from "./types/MultiChoice";
@@ -15,6 +21,7 @@ type Props = {
   showCorrect: boolean;
   index: number;
   total: number;
+  optionOrder?: number[];
 };
 
 const TYPE_LABELS: Record<Question["type"], string> = {
@@ -25,6 +32,36 @@ const TYPE_LABELS: Record<Question["type"], string> = {
   fillin: "Doplň odpoveď",
 };
 
+const identityOrder = (n: number): number[] =>
+  Array.from({ length: n }, (_, i) => i);
+
+const reorderSingle = (
+  q: SingleChoiceQuestion,
+  order: number[],
+): SingleChoiceQuestion => ({
+  ...q,
+  options: order.map((i) => q.options[i]),
+  answer: order.indexOf(q.answer),
+});
+
+const reorderMulti = (
+  q: MultiChoiceQuestion,
+  order: number[],
+): MultiChoiceQuestion => ({
+  ...q,
+  options: order.map((i) => q.options[i]),
+  answers: q.answers.map((a) => order.indexOf(a)).sort((a, b) => a - b),
+});
+
+const reorderMatching = (
+  q: MatchingQuestion,
+  rightOrder: number[],
+): MatchingQuestion => ({
+  ...q,
+  right: rightOrder.map((i) => q.right[i]),
+  pairs: q.pairs.map(([li, ri]) => [li, rightOrder.indexOf(ri)] as [number, number]),
+});
+
 export const QuestionCard = ({
   question,
   answer,
@@ -32,6 +69,7 @@ export const QuestionCard = ({
   showCorrect,
   index,
   total,
+  optionOrder,
 }: Props) => {
   const isCorrect = showCorrect && gradeQuestion(question, answer);
   const isWrongOrUnanswered = showCorrect && !isCorrect;
@@ -74,39 +112,71 @@ export const QuestionCard = ({
         />
       )}
 
-      {question.type === "single" && (
-        <SingleChoice
-          question={question}
-          value={answer?.type === "single" ? answer.value : null}
-          onChange={(v) => onAnswer({ type: "single", value: v })}
-          disabled={showCorrect}
-          showCorrect={showCorrect}
-        />
-      )}
+      {question.type === "single" && (() => {
+        const order = optionOrder ?? identityOrder(question.options.length);
+        const displayQ = reorderSingle(question, order);
+        const origValue = answer?.type === "single" ? answer.value : null;
+        const displayValue = origValue == null ? null : order.indexOf(origValue);
+        return (
+          <SingleChoice
+            question={displayQ}
+            value={displayValue}
+            onChange={(k) => onAnswer({ type: "single", value: order[k] })}
+            disabled={showCorrect}
+            showCorrect={showCorrect}
+          />
+        );
+      })()}
 
-      {question.type === "multi" && (
-        <MultiChoice
-          question={question}
-          value={answer?.type === "multi" ? answer.value : []}
-          onChange={(v) => onAnswer({ type: "multi", value: v })}
-          disabled={showCorrect}
-          showCorrect={showCorrect}
-        />
-      )}
+      {question.type === "multi" && (() => {
+        const order = optionOrder ?? identityOrder(question.options.length);
+        const displayQ = reorderMulti(question, order);
+        const origValue = answer?.type === "multi" ? answer.value : [];
+        const displayValue = origValue
+          .map((v) => order.indexOf(v))
+          .filter((v) => v >= 0)
+          .sort((a, b) => a - b);
+        return (
+          <MultiChoice
+            question={displayQ}
+            value={displayValue}
+            onChange={(v) =>
+              onAnswer({
+                type: "multi",
+                value: v.map((k) => order[k]).sort((a, b) => a - b),
+              })
+            }
+            disabled={showCorrect}
+            showCorrect={showCorrect}
+          />
+        );
+      })()}
 
-      {question.type === "matching" && (
-        <Matching
-          question={question}
-          value={
-            answer?.type === "matching"
-              ? answer.value
-              : Array(question.left.length).fill(null)
-          }
-          onChange={(v) => onAnswer({ type: "matching", value: v })}
-          disabled={showCorrect}
-          showCorrect={showCorrect}
-        />
-      )}
+      {question.type === "matching" && (() => {
+        const order = optionOrder ?? identityOrder(question.right.length);
+        const displayQ = reorderMatching(question, order);
+        const origValue =
+          answer?.type === "matching"
+            ? answer.value
+            : Array(question.left.length).fill(null);
+        const displayValue = origValue.map((v) =>
+          v == null ? null : order.indexOf(v),
+        );
+        return (
+          <Matching
+            question={displayQ}
+            value={displayValue}
+            onChange={(v) =>
+              onAnswer({
+                type: "matching",
+                value: v.map((k) => (k == null ? null : order[k])),
+              })
+            }
+            disabled={showCorrect}
+            showCorrect={showCorrect}
+          />
+        );
+      })()}
 
       {question.type === "fillin" && (
         <FillIn
