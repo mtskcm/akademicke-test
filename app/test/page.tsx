@@ -2,54 +2,97 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { questions as ALL_QUESTIONS } from "@/lib/questions";
 import type { Mode, Question, QuestionAnswer, TestState } from "@/lib/types";
 import { loadProgress, saveProgress, clearProgress } from "@/lib/storage";
 import { gradeQuestion, isAnswered } from "@/lib/grading";
+import { shuffle } from "@/lib/shuffle";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
 import { Results } from "@/components/Results";
 
-const initialState = (mode: Mode): TestState => ({
+const buildOrder = (questions: Question[], shuffled: boolean): number[] => {
+  const ids = questions.map((q) => q.id);
+  return shuffled ? shuffle(ids) : ids;
+};
+
+const initialState = (mode: Mode, shuffled: boolean): TestState => ({
   mode,
   currentIndex: 0,
   answers: {},
   finished: false,
   startedAt: Date.now(),
+  shuffled,
+  order: buildOrder(ALL_QUESTIONS, shuffled),
+  submittedIds: [],
 });
 
+const isAutoSubmit = (type: Question["type"]) => type === "truefalse" || type === "single";
+
 function TestRunner() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const requestedMode = (searchParams.get("mode") as Mode) || "training";
+  const requestedShuffle = searchParams.get("shuffle") === "1";
 
   const [state, setState] = useState<TestState | null>(null);
-  const [questionsToShow, setQuestionsToShow] = useState<Question[]>(ALL_QUESTIONS);
+  const [pool, setPool] = useState<Question[]>(ALL_QUESTIONS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     const saved = loadProgress();
     if (saved && !saved.finished) {
-      setState(saved);
+      const fixed: TestState = {
+        ...saved,
+        order: saved.order && saved.order.length > 0 ? saved.order : ALL_QUESTIONS.map((q) => q.id),
+        shuffled: saved.shuffled ?? false,
+        submittedIds: saved.submittedIds ?? [],
+      };
+      setState(fixed);
     } else {
-      setState(initialState(requestedMode));
+      setState(initialState(requestedMode, requestedShuffle));
     }
     setHydrated(true);
-  }, [requestedMode]);
+  }, [requestedMode, requestedShuffle]);
 
   useEffect(() => {
     if (state && hydrated) saveProgress(state);
   }, [state, hydrated]);
 
+  const questionsToShow = useMemo(() => {
+    if (!state) return [];
+    const byId = new Map(pool.map((q) => [q.id, q]));
+    return state.order.map((id) => byId.get(id)).filter((q): q is Question => !!q);
+  }, [state, pool]);
+
   const current = questionsToShow[state?.currentIndex ?? 0];
 
   const setAnswer = (a: QuestionAnswer) => {
     if (!state || !current) return;
+    const newAnswers = { ...state.answers, [current.id]: a };
+    let newSubmitted = state.submittedIds;
+    if (
+      state.mode === "training" &&
+      isAutoSubmit(current.type) &&
+      isAnswered(current, a) &&
+      !state.submittedIds.includes(current.id)
+    ) {
+      newSubmitted = [...state.submittedIds, current.id];
+    }
     setState({
       ...state,
-      answers: { ...state.answers, [current.id]: a },
+      answers: newAnswers,
+      submittedIds: newSubmitted,
+    });
+  };
+
+  const submitCurrent = () => {
+    if (!state || !current) return;
+    if (state.submittedIds.includes(current.id)) return;
+    setState({
+      ...state,
+      submittedIds: [...state.submittedIds, current.id],
     });
   };
 
@@ -65,8 +108,26 @@ function TestRunner() {
 
   const restart = () => {
     clearProgress();
-    setQuestionsToShow(ALL_QUESTIONS);
-    setState(initialState(state?.mode ?? "training"));
+    setPool(ALL_QUESTIONS);
+    setState(initialState(state?.mode ?? "training", state?.shuffled ?? false));
+  };
+
+  const reshuffle = () => {
+    if (!state) return;
+    clearProgress();
+    setPool(ALL_QUESTIONS);
+    setState({
+      ...initialState(state.mode, true),
+    });
+  };
+
+  const unshuffle = () => {
+    if (!state) return;
+    clearProgress();
+    setPool(ALL_QUESTIONS);
+    setState({
+      ...initialState(state.mode, false),
+    });
   };
 
   const retryWrong = () => {
@@ -74,8 +135,13 @@ function TestRunner() {
     const wrong = ALL_QUESTIONS.filter((q) => !gradeQuestion(q, state.answers[q.id]));
     if (wrong.length === 0) return;
     clearProgress();
-    setQuestionsToShow(wrong);
-    setState(initialState("training"));
+    setPool(wrong);
+    const wrongIds = wrong.map((q) => q.id);
+    setState({
+      ...initialState("training", false),
+      order: state.shuffled ? shuffle(wrongIds) : wrongIds,
+      shuffled: state.shuffled,
+    });
   };
 
   const answeredCount = useMemo(
@@ -94,8 +160,21 @@ function TestRunner() {
     );
   }
 
-  const showCorrect =
-    state.finished || (state.mode === "training" && isAnswered(current, state.answers[current.id]));
+  if (!current) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-slate-500">
+        Test je prázdny.
+      </div>
+    );
+  }
+
+  const submittedHere = state.submittedIds.includes(current.id);
+  const showCorrect = state.finished || (state.mode === "training" && submittedHere);
+  const canCheck =
+    state.mode === "training" &&
+    !submittedHere &&
+    !isAutoSubmit(current.type) &&
+    isAnswered(current, state.answers[current.id]);
 
   if (state.finished) {
     return (
@@ -138,10 +217,29 @@ function TestRunner() {
           >
             ← Domov
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <span className="text-xs px-2.5 py-1 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-medium">
               {state.mode === "training" ? "Tréning" : "Test"}
             </span>
+            {state.shuffled ? (
+              <button
+                type="button"
+                onClick={unshuffle}
+                title="Vrátiť pôvodné poradie a začať odznova"
+                className="text-xs px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 hover:bg-amber-200 dark:hover:bg-amber-900 text-amber-700 dark:text-amber-300 transition-colors"
+              >
+                🎲 Premiešané
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={reshuffle}
+                title="Premiešať otázky a začať odznova"
+                className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 transition-colors"
+              >
+                🎲 Premiešať
+              </button>
+            )}
             <button
               type="button"
               onClick={restart}
@@ -164,6 +262,18 @@ function TestRunner() {
           index={state.currentIndex}
           total={questionsToShow.length}
         />
+
+        {canCheck && (
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={submitCurrent}
+              className="w-full px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors"
+            >
+              Skontrolovať odpoveď
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between gap-3 mt-6">
           <button
@@ -200,6 +310,7 @@ function TestRunner() {
           <QuestionGrid
             questions={questionsToShow}
             answers={state.answers}
+            submittedIds={state.submittedIds}
             currentIndex={state.currentIndex}
             onSelect={goTo}
             mode={state.mode}

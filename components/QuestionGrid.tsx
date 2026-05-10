@@ -6,6 +6,7 @@ import { gradeQuestion, isAnswered } from "@/lib/grading";
 type Props = {
   questions: Question[];
   answers: Record<number, QuestionAnswer>;
+  submittedIds: number[];
   currentIndex: number;
   onSelect: (i: number) => void;
   mode: Mode;
@@ -15,6 +16,7 @@ type Props = {
 export const QuestionGrid = ({
   questions,
   answers,
+  submittedIds,
   currentIndex,
   onSelect,
   mode,
@@ -24,7 +26,8 @@ export const QuestionGrid = ({
     const q = questions[i];
     const a = answers[q.id];
     const answered = isAnswered(q, a);
-    const showResult = finished || (mode === "training" && answered);
+    const submitted = submittedIds.includes(q.id);
+    const showResult = finished || (mode === "training" && submitted);
 
     const base =
       "w-9 h-9 rounded-lg text-xs font-semibold flex items-center justify-center transition-all border";

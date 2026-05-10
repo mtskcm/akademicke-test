@@ -66,4 +66,7 @@ export type TestState = {
   answers: Record<number, QuestionAnswer>;
   finished: boolean;
   startedAt: number;
+  order: number[];
+  shuffled: boolean;
+  submittedIds: number[];
 };

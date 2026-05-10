@@ -10,11 +10,14 @@ import { isAnswered } from "@/lib/grading";
 export default function Home() {
   const [saved, setSaved] = useState<TestState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [shuffleOn, setShuffleOn] = useState(false);
 
   useEffect(() => {
     setSaved(loadProgress());
     setHydrated(true);
   }, []);
+
+  const shuffleParam = shuffleOn ? "&shuffle=1" : "";
 
   const answeredCount = saved
     ? questions.filter((q) => isAnswered(q, saved.answers[q.id])).length
@@ -69,9 +72,26 @@ export default function Home() {
           </div>
         )}
 
+        <label className="mb-5 flex items-center gap-3 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 cursor-pointer hover:border-brand-400 transition-all select-none">
+          <input
+            type="checkbox"
+            checked={shuffleOn}
+            onChange={(e) => setShuffleOn(e.target.checked)}
+            className="w-5 h-5 accent-brand-600 cursor-pointer"
+          />
+          <span className="flex-1">
+            <span className="block font-semibold text-slate-900 dark:text-slate-100">
+              🎲 Premiešať otázky
+            </span>
+            <span className="block text-xs text-slate-500 dark:text-slate-400">
+              Pri každom novom spustení iné poradie — aby si sa nenaučila len poradie odpovedí.
+            </span>
+          </span>
+        </label>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
-            href="/test?mode=training"
+            href={`/test?mode=training${shuffleParam}`}
             className="group block p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-400 hover:shadow-md transition-all"
           >
             <div className="text-2xl mb-2">📖</div>
@@ -84,7 +104,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/test?mode=exam"
+            href={`/test?mode=exam${shuffleParam}`}
             className="group block p-6 rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-brand-400 hover:shadow-md transition-all"
           >
             <div className="text-2xl mb-2">🎓</div>
