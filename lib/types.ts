@@ -81,4 +81,5 @@ export type TestState = {
   submittedIds: number[];
   optionOrders: Record<number, number[]>;
   count: number | null;
+  timeLimitMinutes: number | null;
 };

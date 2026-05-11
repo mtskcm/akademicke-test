@@ -14,19 +14,35 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
 import { Results } from "@/components/Results";
 
-const pickQuestions = (count: number | null, shuffled: boolean): Question[] => {
-  if (count && count < ALL_QUESTIONS.length) {
-    return shuffle(ALL_QUESTIONS).slice(0, count);
+const CLOSED_TYPES: ReadonlySet<Question["type"]> = new Set([
+  "truefalse",
+  "single",
+  "multi",
+  "matching",
+]);
+
+const pickQuestions = (
+  count: number | null,
+  shuffled: boolean,
+  closedOnly: boolean,
+): Question[] => {
+  const pool = closedOnly
+    ? ALL_QUESTIONS.filter((q) => CLOSED_TYPES.has(q.type))
+    : ALL_QUESTIONS;
+  if (count && count < pool.length) {
+    return shuffle(pool).slice(0, count);
   }
-  return shuffled ? shuffle(ALL_QUESTIONS) : ALL_QUESTIONS;
+  return shuffled ? shuffle(pool) : pool;
 };
 
 const initialState = (
   mode: Mode,
   shuffled: boolean,
   count: number | null,
+  timeLimitMinutes: number | null,
+  closedOnly: boolean,
 ): TestState => {
-  const picked = pickQuestions(count, shuffled);
+  const picked = pickQuestions(count, shuffled, closedOnly);
   return {
     mode,
     currentIndex: 0,
@@ -38,6 +54,7 @@ const initialState = (
     submittedIds: [],
     optionOrders: buildOptionOrders(picked, shuffled),
     count,
+    timeLimitMinutes,
   };
 };
 
@@ -49,10 +66,37 @@ function TestRunner() {
   const requestedMode = (searchParams.get("mode") as Mode) || "training";
   const requestedShuffle = searchParams.get("shuffle") === "1";
   const requestedCountRaw = searchParams.get("count");
-  const requestedCount = requestedCountRaw ? Math.max(1, parseInt(requestedCountRaw, 10)) : null;
+  const requestedCount = requestedCountRaw
+    ? Math.max(1, parseInt(requestedCountRaw, 10))
+    : null;
+  const requestedTimeRaw = searchParams.get("time");
+  const requestedTime = requestedTimeRaw
+    ? Math.max(1, parseInt(requestedTimeRaw, 10))
+    : null;
+  const requestedClosed = searchParams.get("closed") === "1";
 
   const [state, setState] = useState<TestState | null>(null);
   const [hydrated, setHydrated] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    if (!state || !state.timeLimitMinutes || state.finished) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [state]);
+
+  const remainingMs = state && state.timeLimitMinutes
+    ? Math.max(
+        0,
+        state.startedAt + state.timeLimitMinutes * 60_000 - now,
+      )
+    : null;
+
+  useEffect(() => {
+    if (remainingMs === 0 && state && !state.finished) {
+      setState({ ...state, finished: true });
+    }
+  }, [remainingMs, state]);
 
   useEffect(() => {
     const saved = loadProgress();
@@ -70,13 +114,28 @@ function TestRunner() {
             ? saved.optionOrders
             : buildOptionOrders(ALL_QUESTIONS, saved.shuffled ?? false),
         count: saved.count ?? null,
+        timeLimitMinutes: saved.timeLimitMinutes ?? null,
       };
       setState(fixed);
     } else {
-      setState(initialState(requestedMode, requestedShuffle, requestedCount));
+      setState(
+        initialState(
+          requestedMode,
+          requestedShuffle,
+          requestedCount,
+          requestedTime,
+          requestedClosed,
+        ),
+      );
     }
     setHydrated(true);
-  }, [requestedMode, requestedShuffle, requestedCount]);
+  }, [
+    requestedMode,
+    requestedShuffle,
+    requestedCount,
+    requestedTime,
+    requestedClosed,
+  ]);
 
   useEffect(() => {
     if (state && hydrated) saveProgress(state);
@@ -140,6 +199,8 @@ function TestRunner() {
         state?.mode ?? "training",
         state?.shuffled ?? false,
         state?.count ?? null,
+        state?.timeLimitMinutes ?? null,
+        requestedClosed,
       ),
     );
   };
@@ -147,13 +208,29 @@ function TestRunner() {
   const reshuffle = () => {
     if (!state) return;
     clearProgress();
-    setState(initialState(state.mode, true, state.count));
+    setState(
+      initialState(
+        state.mode,
+        true,
+        state.count,
+        state.timeLimitMinutes,
+        requestedClosed,
+      ),
+    );
   };
 
   const unshuffle = () => {
     if (!state) return;
     clearProgress();
-    setState(initialState(state.mode, false, state.count));
+    setState(
+      initialState(
+        state.mode,
+        false,
+        state.count,
+        state.timeLimitMinutes,
+        requestedClosed,
+      ),
+    );
   };
 
   const retryWrong = () => {
@@ -166,7 +243,7 @@ function TestRunner() {
     clearProgress();
     const wrongIds = wrong.map((q) => q.id);
     setState({
-      ...initialState("training", false, null),
+      ...initialState("training", false, null, null, false),
       order: state.shuffled ? shuffle(wrongIds) : wrongIds,
       shuffled: state.shuffled,
       optionOrders: buildOptionOrders(wrong, state.shuffled),
@@ -212,6 +289,16 @@ function TestRunner() {
     if (state.count) return `Skúška ${state.count}`;
     return state.mode === "training" ? "Tréning" : "Test";
   })();
+
+  const formatTime = (ms: number) => {
+    const total = Math.ceil(ms / 1000);
+    const mm = Math.floor(total / 60);
+    const ss = total % 60;
+    return `${mm}:${ss.toString().padStart(2, "0")}`;
+  };
+
+  const timerLow = remainingMs !== null && remainingMs <= 60_000;
+  const timerVeryLow = remainingMs !== null && remainingMs <= 10_000;
 
   if (state.finished) {
     return (
@@ -262,6 +349,20 @@ function TestRunner() {
             ← Domov
           </Link>
           <div className="flex items-center gap-2 flex-wrap justify-end">
+            {remainingMs !== null && (
+              <span
+                className={`text-sm font-mono font-bold tabular-nums px-2.5 py-1 rounded-full transition-colors ${
+                  timerVeryLow
+                    ? "bg-rose-600 text-white animate-pulse"
+                    : timerLow
+                      ? "bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                }`}
+                title="Zostávajúci čas"
+              >
+                ⏱ {formatTime(remainingMs)}
+              </span>
+            )}
             <span className="text-xs px-2.5 py-1 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-medium">
               {modeLabel}
             </span>

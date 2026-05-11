@@ -118,7 +118,7 @@ export default function Home() {
         </div>
 
         <Link
-          href="/test?mode=exam&count=40&shuffle=1"
+          href="/test?mode=exam&count=40&shuffle=1&time=25&closed=1"
           className="group block mt-4 p-6 rounded-2xl border-2 border-brand-300 dark:border-brand-800 bg-gradient-to-br from-brand-50 to-white dark:from-brand-950 dark:to-slate-900 hover:border-brand-500 hover:shadow-md transition-all"
         >
           <div className="flex items-start gap-4">
@@ -131,9 +131,12 @@ export default function Home() {
                 <span className="text-xs px-2 py-0.5 rounded-full bg-brand-600 text-white font-semibold">
                   40 otázok
                 </span>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-rose-600 text-white font-semibold">
+                  ⏱ 25 minút
+                </span>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                Náhodne vybraných <strong>40 otázok</strong> zo všetkých {questions.length}, premiešané otázky aj možnosti, vyhodnotenie až na konci — <em>presne ako pri reálnej skúške</em>.
+                Náhodne vybraných <strong>40 otázok</strong> (bez doplňovacích), premiešané otázky aj možnosti, <strong>časový limit 25 minút</strong>, vyhodnotenie až na konci — <em>presne ako pri reálnej skúške</em>.
               </p>
             </div>
           </div>
