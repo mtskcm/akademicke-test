@@ -14,32 +14,44 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
 import { Results } from "@/components/Results";
 
-const buildOrder = (questions: Question[], shuffled: boolean): number[] => {
-  const ids = questions.map((q) => q.id);
-  return shuffled ? shuffle(ids) : ids;
+const pickQuestions = (count: number | null, shuffled: boolean): Question[] => {
+  if (count && count < ALL_QUESTIONS.length) {
+    return shuffle(ALL_QUESTIONS).slice(0, count);
+  }
+  return shuffled ? shuffle(ALL_QUESTIONS) : ALL_QUESTIONS;
 };
 
-const initialState = (mode: Mode, shuffled: boolean): TestState => ({
-  mode,
-  currentIndex: 0,
-  answers: {},
-  finished: false,
-  startedAt: Date.now(),
-  shuffled,
-  order: buildOrder(ALL_QUESTIONS, shuffled),
-  submittedIds: [],
-  optionOrders: buildOptionOrders(ALL_QUESTIONS, shuffled),
-});
+const initialState = (
+  mode: Mode,
+  shuffled: boolean,
+  count: number | null,
+): TestState => {
+  const picked = pickQuestions(count, shuffled);
+  return {
+    mode,
+    currentIndex: 0,
+    answers: {},
+    finished: false,
+    startedAt: Date.now(),
+    shuffled,
+    order: picked.map((q) => q.id),
+    submittedIds: [],
+    optionOrders: buildOptionOrders(picked, shuffled),
+    count,
+  };
+};
 
-const isAutoSubmit = (type: Question["type"]) => type === "truefalse" || type === "single";
+const isAutoSubmit = (type: Question["type"]) =>
+  type === "truefalse" || type === "single";
 
 function TestRunner() {
   const searchParams = useSearchParams();
   const requestedMode = (searchParams.get("mode") as Mode) || "training";
   const requestedShuffle = searchParams.get("shuffle") === "1";
+  const requestedCountRaw = searchParams.get("count");
+  const requestedCount = requestedCountRaw ? Math.max(1, parseInt(requestedCountRaw, 10)) : null;
 
   const [state, setState] = useState<TestState | null>(null);
-  const [pool, setPool] = useState<Question[]>(ALL_QUESTIONS);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -47,20 +59,24 @@ function TestRunner() {
     if (saved && !saved.finished) {
       const fixed: TestState = {
         ...saved,
-        order: saved.order && saved.order.length > 0 ? saved.order : ALL_QUESTIONS.map((q) => q.id),
+        order:
+          saved.order && saved.order.length > 0
+            ? saved.order
+            : ALL_QUESTIONS.map((q) => q.id),
         shuffled: saved.shuffled ?? false,
         submittedIds: saved.submittedIds ?? [],
         optionOrders:
           saved.optionOrders && Object.keys(saved.optionOrders).length > 0
             ? saved.optionOrders
             : buildOptionOrders(ALL_QUESTIONS, saved.shuffled ?? false),
+        count: saved.count ?? null,
       };
       setState(fixed);
     } else {
-      setState(initialState(requestedMode, requestedShuffle));
+      setState(initialState(requestedMode, requestedShuffle, requestedCount));
     }
     setHydrated(true);
-  }, [requestedMode, requestedShuffle]);
+  }, [requestedMode, requestedShuffle, requestedCount]);
 
   useEffect(() => {
     if (state && hydrated) saveProgress(state);
@@ -68,9 +84,11 @@ function TestRunner() {
 
   const questionsToShow = useMemo(() => {
     if (!state) return [];
-    const byId = new Map(pool.map((q) => [q.id, q]));
-    return state.order.map((id) => byId.get(id)).filter((q): q is Question => !!q);
-  }, [state, pool]);
+    const byId = new Map(ALL_QUESTIONS.map((q) => [q.id, q]));
+    return state.order
+      .map((id) => byId.get(id))
+      .filter((q): q is Question => !!q);
+  }, [state]);
 
   const current = questionsToShow[state?.currentIndex ?? 0];
 
@@ -104,7 +122,10 @@ function TestRunner() {
 
   const goTo = (i: number) => {
     if (!state) return;
-    setState({ ...state, currentIndex: Math.max(0, Math.min(questionsToShow.length - 1, i)) });
+    setState({
+      ...state,
+      currentIndex: Math.max(0, Math.min(questionsToShow.length - 1, i)),
+    });
   };
 
   const finish = () => {
@@ -114,37 +135,38 @@ function TestRunner() {
 
   const restart = () => {
     clearProgress();
-    setPool(ALL_QUESTIONS);
-    setState(initialState(state?.mode ?? "training", state?.shuffled ?? false));
+    setState(
+      initialState(
+        state?.mode ?? "training",
+        state?.shuffled ?? false,
+        state?.count ?? null,
+      ),
+    );
   };
 
   const reshuffle = () => {
     if (!state) return;
     clearProgress();
-    setPool(ALL_QUESTIONS);
-    setState({
-      ...initialState(state.mode, true),
-    });
+    setState(initialState(state.mode, true, state.count));
   };
 
   const unshuffle = () => {
     if (!state) return;
     clearProgress();
-    setPool(ALL_QUESTIONS);
-    setState({
-      ...initialState(state.mode, false),
-    });
+    setState(initialState(state.mode, false, state.count));
   };
 
   const retryWrong = () => {
     if (!state) return;
-    const wrong = ALL_QUESTIONS.filter((q) => !gradeQuestion(q, state.answers[q.id]));
+    const askedIds = new Set(state.order);
+    const wrong = ALL_QUESTIONS.filter(
+      (q) => askedIds.has(q.id) && !gradeQuestion(q, state.answers[q.id]),
+    );
     if (wrong.length === 0) return;
     clearProgress();
-    setPool(wrong);
     const wrongIds = wrong.map((q) => q.id);
     setState({
-      ...initialState("training", false),
+      ...initialState("training", false, null),
       order: state.shuffled ? shuffle(wrongIds) : wrongIds,
       shuffled: state.shuffled,
       optionOrders: buildOptionOrders(wrong, state.shuffled),
@@ -154,7 +176,9 @@ function TestRunner() {
   const answeredCount = useMemo(
     () =>
       state
-        ? questionsToShow.filter((q) => isAnswered(q, state.answers[q.id])).length
+        ? questionsToShow.filter((q) =>
+            isAnswered(q, state.answers[q.id]),
+          ).length
         : 0,
     [state, questionsToShow],
   );
@@ -176,12 +200,18 @@ function TestRunner() {
   }
 
   const submittedHere = state.submittedIds.includes(current.id);
-  const showCorrect = state.finished || (state.mode === "training" && submittedHere);
+  const showCorrect =
+    state.finished || (state.mode === "training" && submittedHere);
   const canCheck =
     state.mode === "training" &&
     !submittedHere &&
     !isAutoSubmit(current.type) &&
     isAnswered(current, state.answers[current.id]);
+
+  const modeLabel = (() => {
+    if (state.count) return `Skúška ${state.count}`;
+    return state.mode === "training" ? "Tréning" : "Test";
+  })();
 
   if (state.finished) {
     return (
@@ -233,7 +263,7 @@ function TestRunner() {
           </Link>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             <span className="text-xs px-2.5 py-1 rounded-full bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300 font-medium">
-              {state.mode === "training" ? "Tréning" : "Test"}
+              {modeLabel}
             </span>
             {state.shuffled ? (
               <button

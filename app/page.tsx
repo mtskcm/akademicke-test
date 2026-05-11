@@ -84,7 +84,7 @@ export default function Home() {
               🎲 Premiešať otázky
             </span>
             <span className="block text-xs text-slate-500 dark:text-slate-400">
-              Pri každom novom spustení iné poradie — aby si sa nenaučila len poradie odpovedí.
+              Pri každom novom spustení tréningu/testu iné poradie — aby si sa nenaučila len poradie odpovedí. (Skúškový režim mieša vždy.)
             </span>
           </span>
         </label>
@@ -116,6 +116,28 @@ export default function Home() {
             </p>
           </Link>
         </div>
+
+        <Link
+          href="/test?mode=exam&count=40&shuffle=1"
+          className="group block mt-4 p-6 rounded-2xl border-2 border-brand-300 dark:border-brand-800 bg-gradient-to-br from-brand-50 to-white dark:from-brand-950 dark:to-slate-900 hover:border-brand-500 hover:shadow-md transition-all"
+        >
+          <div className="flex items-start gap-4">
+            <div className="text-3xl">🎯</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-brand-700 transition-colors">
+                  Skúškový režim
+                </h2>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-brand-600 text-white font-semibold">
+                  40 otázok
+                </span>
+              </div>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                Náhodne vybraných <strong>40 otázok</strong> zo všetkých {questions.length}, premiešané otázky aj možnosti, vyhodnotenie až na konci — <em>presne ako pri reálnej skúške</em>.
+              </p>
+            </div>
+          </div>
+        </Link>
 
         <div className="mt-10 text-center text-xs text-slate-500 dark:text-slate-500">
           Otázky sú prepisované z PDF podkladov (PdF Prešov). Otázky označené ⚠️ pri sebe majú odpoveď doplnenú odhadom — overiť so zdrojom.

@@ -80,4 +80,5 @@ export type TestState = {
   shuffled: boolean;
   submittedIds: number[];
   optionOrders: Record<number, number[]>;
+  count: number | null;
 };
