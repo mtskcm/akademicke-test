@@ -9,6 +9,7 @@ import { loadProgress, saveProgress, clearProgress } from "@/lib/storage";
 import { gradeQuestion, isAnswered } from "@/lib/grading";
 import { shuffle } from "@/lib/shuffle";
 import { buildOptionOrders } from "@/lib/optionOrders";
+import { groupKeyForQuestion } from "@/lib/duplicates";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
@@ -29,10 +30,23 @@ const pickQuestions = (
   const pool = closedOnly
     ? ALL_QUESTIONS.filter((q) => CLOSED_TYPES.has(q.type))
     : ALL_QUESTIONS;
-  if (count && count < pool.length) {
-    return shuffle(pool).slice(0, count);
+
+  if (!count) {
+    return shuffled ? shuffle(pool) : pool;
   }
-  return shuffled ? shuffle(pool) : pool;
+
+  // Pick `count` random questions but ensure no two share a duplicate group
+  const candidates = shuffle(pool);
+  const seenGroups = new Set<string>();
+  const picked: Question[] = [];
+  for (const q of candidates) {
+    const key = groupKeyForQuestion(q.id);
+    if (seenGroups.has(key)) continue;
+    seenGroups.add(key);
+    picked.push(q);
+    if (picked.length >= count) break;
+  }
+  return picked;
 };
 
 const initialState = (
