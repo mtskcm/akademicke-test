@@ -9,6 +9,7 @@ type Props = {
   questions: Question[];
   answers: Record<number, QuestionAnswer>;
   optionOrders: Record<number, number[]>;
+  onAnswer: (questionId: number, a: QuestionAnswer) => void;
   onRestart: () => void;
   onRetryWrong: () => void;
   onJumpTo: (i: number) => void;
@@ -22,7 +23,7 @@ const grade = (pct: number): { msg: string; color: string } => {
   return { msg: "Skús to znova", color: "text-rose-600" };
 };
 
-export const Results = ({ questions, answers, optionOrders, onRestart, onRetryWrong, onJumpTo }: Props) => {
+export const Results = ({ questions, answers, optionOrders, onAnswer, onRestart, onRetryWrong, onJumpTo }: Props) => {
   const [filter, setFilter] = useState<"all" | "wrong">("wrong");
   const score = computeScore(questions, answers);
   const g = grade(score.percentage);
@@ -104,7 +105,7 @@ export const Results = ({ questions, answers, optionOrders, onRestart, onRetryWr
                 <QuestionCard
                   question={q}
                   answer={a}
-                  onAnswer={() => {}}
+                  onAnswer={(ans) => onAnswer(q.id, ans)}
                   showCorrect={true}
                   index={realIndex}
                   total={questions.length}

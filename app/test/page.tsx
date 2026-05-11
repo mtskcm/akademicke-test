@@ -202,6 +202,12 @@ function TestRunner() {
             questions={questionsToShow}
             answers={state.answers}
             optionOrders={state.optionOrders}
+            onAnswer={(questionId, ans) => {
+              setState({
+                ...state,
+                answers: { ...state.answers, [questionId]: ans },
+              });
+            }}
             onRestart={restart}
             onRetryWrong={retryWrong}
             onJumpTo={(i) => {

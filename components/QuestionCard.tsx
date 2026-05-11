@@ -12,6 +12,7 @@ import { SingleChoice } from "./types/SingleChoice";
 import { MultiChoice } from "./types/MultiChoice";
 import { Matching } from "./types/Matching";
 import { FillIn } from "./types/FillIn";
+import { Definition } from "./types/Definition";
 import { gradeQuestion, isAnswered } from "@/lib/grading";
 
 type Props = {
@@ -30,6 +31,7 @@ const TYPE_LABELS: Record<Question["type"], string> = {
   multi: "Viac odpovedí",
   matching: "Priraďovanie",
   fillin: "Doplň odpoveď",
+  definition: "Napíš definíciu",
 };
 
 const identityOrder = (n: number): number[] =>
@@ -184,6 +186,31 @@ export const QuestionCard = ({
           value={answer?.type === "fillin" ? answer.value : ""}
           onChange={(v) => onAnswer({ type: "fillin", value: v })}
           disabled={showCorrect}
+          showCorrect={showCorrect}
+        />
+      )}
+
+      {question.type === "definition" && (
+        <Definition
+          question={question}
+          value={answer?.type === "definition" ? answer.value : ""}
+          selfCorrect={answer?.type === "definition" ? answer.selfCorrect : null}
+          onChange={(v) =>
+            onAnswer({
+              type: "definition",
+              value: v,
+              selfCorrect:
+                answer?.type === "definition" ? answer.selfCorrect : null,
+            })
+          }
+          onSelfGrade={(correct) =>
+            onAnswer({
+              type: "definition",
+              value: answer?.type === "definition" ? answer.value : "",
+              selfCorrect: correct,
+            })
+          }
+          disabled={showCorrect && (answer?.type === "definition" ? answer.selfCorrect !== null : false)}
           showCorrect={showCorrect}
         />
       )}

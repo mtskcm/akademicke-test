@@ -14,6 +14,8 @@ export const isAnswered = (q: Question, a: QuestionAnswer | undefined): boolean 
       return a.value.length === (q as { left: string[] }).left.length && a.value.every((v) => v !== null);
     case "fillin":
       return a.value.trim().length > 0;
+    case "definition":
+      return a.value.trim().length > 0;
   }
 };
 
@@ -38,6 +40,9 @@ export const gradeQuestion = (q: Question, a: QuestionAnswer | undefined): boole
   if (q.type === "fillin" && a.type === "fillin") {
     const norm = normalize(a.value);
     return q.accepted.some((acc) => normalize(acc) === norm);
+  }
+  if (q.type === "definition" && a.type === "definition") {
+    return a.selfCorrect === true;
   }
   return false;
 };

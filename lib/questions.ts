@@ -112,6 +112,13 @@ export const questions: Question[] = [
     answer: 0,
   },
   {
+    id: 113,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Kompilát\".",
+    reference:
+      "Text, ktorý vznikol zostavením myšlienok z iných diel, pričom sa autor kompilátu vo svojej práci jasne a korektne odvoláva na použité zdroje.",
+  },
+  {
     id: 6,
     type: "truefalse",
     text: "Pri práci so zdrojovou literatúrou by mal študent preukázať porozumenie problematiky tým, že dokáže porovnávať teoretické koncepty a empirické zistenia z viacerých študovaných zdrojov.",
@@ -180,6 +187,13 @@ export const questions: Question[] = [
     text: "Ktorý citačný zápis sa v univerzitnej smernici používa pre citovanie článku z časopisu?",
     options: CITACIA_CASOPIS_OPTIONS,
     answer: 2,
+  },
+  {
+    id: 114,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Plagiátorstvo\".",
+    reference:
+      "Hrubé porušenie publikačnej etiky — svojvoľné preberanie a používanie cudzích myšlienok a ich vydávanie za vlastné.",
   },
   {
     id: 13,
@@ -288,6 +302,13 @@ export const questions: Question[] = [
     answer: 4,
   },
   {
+    id: 115,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Klonovanie (roleta)\".",
+    reference:
+      "Kompletné prebratie cudzieho textu z jedného zdroja bez zmien a bez označenia toho prebratého textu za vlastný.",
+  },
+  {
     id: 22,
     type: "single",
     text: "Doslovne prevzatý text zo zdrojového dokumentu, vymedzený úvodzovkami, sa nazýva:",
@@ -328,6 +349,13 @@ export const questions: Question[] = [
     note: "⚠️ Definície „Sekundárny kompilát\" a „Presýtenosť citáciami\" boli doplnené z bežnej teórie publikačnej etiky — pri zázname overiť so smernicou.",
   },
   {
+    id: 116,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „CTRL-C (žalúzie)\".",
+    reference:
+      "Použitie významných častí textu z jedného zdroja bez zmien — bez vlastného autorského spracovania.",
+  },
+  {
     id: 25,
     type: "single",
     text: "Ak chceme v texte výnimočne niečo zvýrazniť, tak použijeme:",
@@ -339,6 +367,13 @@ export const questions: Question[] = [
     type: "truefalse",
     text: "Nedodržaním etických štandardov v záverečnej práci autor ohrozuje aj samého seba — riskuje disciplinárne konanie pred etickou komisiou fakulty, ktorej závery môžu byť rôzne (nepripustenie ku štátnym skúškam, neobhájenie záverečnej práce, povinnosť ju celú prepracovať či vylúčenie zo štúdia).",
     answer: true,
+  },
+  {
+    id: 117,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Maskovanie\".",
+    reference:
+      "Nájdi-nahraď: zmena kľúčových slov a fráz v kopírovanom texte, ale zachovanie základného obsahu zdroja.",
   },
   {
     id: 27,
@@ -379,11 +414,24 @@ export const questions: Question[] = [
     answer: 0,
   },
   {
+    id: 101,
+    type: "fillin",
+    text: "Doplň pojem: „Autor ponúka vlastnú interpretáciu či závery založené na odborných faktoch.\" Ako sa tento prístup k autorskej práci nazýva?",
+    accepted: ["autorský vklad", "autorsky vklad"],
+  },
+  {
     id: 29,
     type: "fillin",
     text: "Vytváranie výpiskov z odbornej literatúry pre študijné ciele sa nazýva?",
     accepted: ["excerpcia", "excerpácia"],
     hint: "jedno slovo",
+  },
+  {
+    id: 118,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Hybrid\".",
+    reference:
+      "Kombinovanie citovaných a necitovaných pasáží z cudzích zdrojov — vážne porušenie etiky citovania.",
   },
   {
     id: 30,
@@ -423,11 +471,24 @@ export const questions: Question[] = [
     accepted: ["agregator", "agregátor"],
   },
   {
+    id: 102,
+    type: "fillin",
+    text: "Opätovné používanie (publikovanie) vlastných diel bez citovania sa nazýva?",
+    accepted: ["recyklovanie"],
+  },
+  {
     id: 35,
     type: "single",
     text: "Ktorý citačný zápis sa v univerzitnej smernici používa pre citovanie článku z časopisu? (opakovanie)",
     options: CITACIA_CASOPIS_OPTIONS,
     answer: 2,
+  },
+  {
+    id: 119,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Agregátor\".",
+    reference:
+      "Kopírovanie cudzích textov, ktoré sú síce odcitované, ale bez vlastného textu autora.",
   },
   {
     id: 36,
@@ -467,6 +528,12 @@ export const questions: Question[] = [
     accepted: ["abstrakt"],
   },
   {
+    id: 103,
+    type: "fillin",
+    text: "Využívanie rozsiahlych častí svojho už publikovaného (napísaného) textu — s citovaním či bez citovania — sa nazýva?",
+    accepted: ["autoplagizovanie", "autoplagiatorstvo", "autoplagiátorstvo"],
+  },
+  {
     id: 41,
     type: "single",
     text: "V prípade napr. dvoch autorov uvádzame citačný odkaz v texte vo forme:",
@@ -477,6 +544,13 @@ export const questions: Question[] = [
       "(Smith, Jones; 2008)",
     ],
     answer: 0,
+  },
+  {
+    id: 120,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Remix\".",
+    reference:
+      "Parafrázovanie viacerých zdrojov a ich pospájanie bez logickej súvislosti.",
   },
   {
     id: 42,
@@ -541,11 +615,34 @@ export const questions: Question[] = [
     answer: 1,
   },
   {
+    id: 104,
+    type: "fillin",
+    text: "Použitie významných častí textu z jedného zdroja bez zmien sa tiež označuje (klávesovou skratkou alebo „žalúzie\") ako?",
+    accepted: [
+      "ctrl-c",
+      "ctrl c",
+      "ctrlc",
+      "žalúzie",
+      "zaluzie",
+      "ctrl-c (žalúzie)",
+      "ctrl c (žaluzie)",
+      "ctrl-c žalúzie",
+    ],
+    hint: "klávesová skratka alebo „žalúzie\"",
+  },
+  {
     id: 48,
     type: "single",
     text: "Vytváranie výpiskov odbornej alebo umeleckej literatúry pre študijné ciele sa nazýva:",
     options: ["excerpcia", "rešerš", "kompilácia", "jazyková korektúra"],
     answer: 0,
+  },
+  {
+    id: 121,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Autoplagizovanie\".",
+    reference:
+      "Využívanie rozsiahlych častí svojho už publikovaného (napísaného) textu — s citovaním či bez citovania.",
   },
   {
     id: 49,
@@ -612,10 +709,23 @@ export const questions: Question[] = [
     note: "Smernica pripúšťa aj 1. osobu množného čísla (autorský plurál) a/alebo trpný rod — overiť presnú formuláciu.",
   },
   {
+    id: 105,
+    type: "fillin",
+    text: "Parafrázovanie viacerých zdrojov a ich pospájanie bez logickej súvislosti sa označuje ako?",
+    accepted: ["remix"],
+  },
+  {
     id: 56,
     type: "fillin",
     text: "Ak chceme v texte výnimočne niečo zvýrazniť, tak použijeme:",
     accepted: ["kurziva", "kurzívu", "kurzíva", "italika"],
+  },
+  {
+    id: 122,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Recyklovanie\".",
+    reference:
+      "Opätovné používanie (publikovanie) vlastných diel bez citovania.",
   },
   {
     id: 57,
@@ -635,6 +745,13 @@ export const questions: Question[] = [
     type: "fillin",
     text: "Ak sa zátvorka s citačným odkazom nachádza na konci vety, tak sa uvádza __________ .",
     accepted: ["pred bodkou"],
+  },
+  {
+    id: 123,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Kúpa\".",
+    reference:
+      "Využívanie kúpeného / zaplateného textu napísaného niekým iným — vážne porušenie autorskej etiky.",
   },
   {
     id: 60,
@@ -659,6 +776,12 @@ export const questions: Question[] = [
     type: "fillin",
     text: "Kazuistika je ____________ štúdia.",
     accepted: ["pripadova", "prípadová"],
+  },
+  {
+    id: 106,
+    type: "fillin",
+    text: "Hrubé porušenie publikačnej etiky — svojvoľné preberanie a používanie cudzích myšlienok a ich vydávanie za vlastné — sa nazýva?",
+    accepted: ["plagiátorstvo", "plagiatorstvo", "plagiát", "plagiat"],
   },
   {
     id: 63,
@@ -692,6 +815,13 @@ export const questions: Question[] = [
     text: "Citovať nemusíme:",
     options: CITE_NEMUSIME_OPTIONS,
     answer: 1,
+  },
+  {
+    id: 124,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Autorský vklad\".",
+    reference:
+      "Autor ponúka vlastnú interpretáciu či závery založené na odborných faktoch.",
   },
   {
     id: 66,
@@ -743,10 +873,23 @@ export const questions: Question[] = [
     answer: 0,
   },
   {
+    id: 107,
+    type: "fillin",
+    text: "Vedecká publikácia určená úzkemu okruhu čitateľov, ktorá sa podrobne a vedecky precízne venuje jednej téme v rámci istej oblasti vedy a prináša nové poznatky, sa nazýva?",
+    accepted: ["monografia"],
+  },
+  {
     id: 71,
     type: "truefalse",
     text: "Pri práci so zdrojovou literatúrou by mal študent preukázať porozumenie problematiky tým, že dokáže porovnávať teoretické koncepty a empirické zistenia z viacerých študovaných zdrojov.",
     answer: true,
+  },
+  {
+    id: 125,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Abstrakt\" (vrátane jeho účelu a štruktúry).",
+    reference:
+      "Krátka, výstižná charakteristika obsahu dokumentu, ktorá slúži na jeho presnú a rýchlu identifikáciu. Obsahuje informáciu o cieľoch práce, jej stručnom obsahu, použitých metódach, výsledkoch a záveroch. Píše sa ako jeden odsek, v trpnom rode v 3. osobe, s 3–5 kľúčovými slovami.",
   },
   {
     id: 72,
@@ -796,6 +939,13 @@ export const questions: Question[] = [
     answers: [0, 1, 4, 5],
   },
   {
+    id: 126,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Rešerš\".",
+    reference:
+      "Vypracovanie bibliografického zoznamu relevantných dokumentov v určitej téme, ktorý obsahuje základné bibliografické údaje (autor, názov, miesto a rok vydania, počet strán) a prípadne ďalší popis (predmetové heslá, abstrakt).",
+  },
+  {
     id: 76,
     type: "single",
     text: "Ak sa zátvorka s citačným odkazom nachádza na konci vety, tak sa uvádza:",
@@ -838,6 +988,20 @@ export const questions: Question[] = [
     answer: 6,
   },
   {
+    id: 108,
+    type: "fillin",
+    text: "Odborná publikácia určená širšiemu okruhu čitateľov, ktorá pre potreby štúdia predmetnej oblasti predkladá usporiadaný systém podstatných overených a spoľahlivých poznatkov s oporou o najnovšie zistenia, sa nazýva?",
+    accepted: [
+      "vysokoškolská učebnica",
+      "vysokoskolska ucebnica",
+      "vš učebnica",
+      "vs ucebnica",
+      "vš učebnica",
+      "učebnica",
+      "ucebnica",
+    ],
+  },
+  {
     id: 79,
     type: "single",
     text: "Pri štylizácii abstraktu sa používa: (opakovanie)",
@@ -865,6 +1029,13 @@ export const questions: Question[] = [
     type: "truefalse",
     text: "Práca sa píše v prvej osobe jednotného čísla.",
     answer: false,
+  },
+  {
+    id: 127,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Excerpcia\".",
+    reference:
+      "Vytváranie výpiskov odbornej alebo umeleckej literatúry pre študijné ciele.",
   },
   {
     id: 82,
@@ -904,10 +1075,23 @@ export const questions: Question[] = [
     answer: 1,
   },
   {
+    id: 109,
+    type: "fillin",
+    text: "Text, ktorý vznikol zostavením myšlienok z iných diel, pričom sa autor v práci jasne a korektne odvoláva na použité zdroje, sa nazýva?",
+    accepted: ["kompilát", "kompilat", "tvorivý kompilát", "tvorivy kompilat"],
+  },
+  {
     id: 86,
     type: "fillin",
     text: "Knižná publikácia, ktorá pod spoločným názvom prináša súbor samostatných, vzájomne príbuzných textov, sa nazýva:",
     accepted: ["zbornik", "zborník"],
+  },
+  {
+    id: 128,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Monografia\".",
+    reference:
+      "Vedecká publikácia určená úzkemu okruhu čitateľov, ktorá sa podrobne a vedecky precízne venuje jednej téme v rámci istej oblasti vedy a prináša nové poznatky.",
   },
   {
     id: 87,
@@ -940,6 +1124,12 @@ export const questions: Question[] = [
     ],
   },
   {
+    id: 110,
+    type: "fillin",
+    text: "Nekorektné a obsahovo nepresné preberanie textov, výsledkom čoho je skreslenie pôvodného významu, sa označuje ako _______ citovanie.",
+    accepted: ["skreslené", "skreslene"],
+  },
+  {
     id: 89,
     type: "fillin",
     text: "Ako sa označuje využívanie zaplateného textu napísaného niekým iným, ktoré je vážnym porušením autorskej etiky?",
@@ -955,6 +1145,13 @@ export const questions: Question[] = [
       "MIŇOVÁ, M., 2013. Vyučovací proces a jeho aktéri. In: M. Portik a kol. Predškolská a elementárna didaktika. Prešov: Prešovská univerzita v Prešove. s. 34 – 47. ISBN 978-80-555-0467-4.",
     ],
     answer: 2,
+  },
+  {
+    id: 129,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Zborník\".",
+    reference:
+      "Knižná publikácia, ktorá pod spoločným názvom prináša súbor samostatných, vzájomne príbuzných textov. Vedecká alebo odborná publikácia, v ktorej sa nachádzajú štúdie a odborné články viacerých autorov súvisiace zvyčajne s jednou témou.",
   },
   {
     id: 91,
@@ -994,6 +1191,12 @@ export const questions: Question[] = [
     accepted: ["reserš", "rešerš", "reserš"],
   },
   {
+    id: 111,
+    type: "fillin",
+    text: "Pri opakovanej citácii jedného diela jedného autora na tej istej strane v bezprostrednej nadväznosti môžeme v texte uviesť (v zátvorke) skrátený výraz:",
+    accepted: ["tamže", "tamze", "(tamže)", "(tamze)"],
+  },
+  {
     id: 95,
     type: "multi",
     text: "Vyberte jednu alebo viac možností, ktoré charakterizujú záver bakalárskej práce:",
@@ -1007,6 +1210,13 @@ export const questions: Question[] = [
       "obsahuje predovšetkým nové, doteraz nepublikované teoretické úvahy a hypotézy",
     ],
     answers: [0, 1, 2, 3, 4, 5],
+  },
+  {
+    id: 130,
+    type: "definition",
+    text: "Napíš vlastnými slovami definíciu pojmu: „Kazuistika\".",
+    reference:
+      "Prípadová štúdia — výskumná metóda zameraná na podrobné skúmanie jedného konkrétneho prípadu.",
   },
   {
     id: 96,
@@ -1054,6 +1264,12 @@ export const questions: Question[] = [
       [2, 2],
     ],
     note: "⚠️ Konkrétne tituly nie sú uvedené v podkladoch — priradenie podľa najznámejších publikácií autorov.",
+  },
+  {
+    id: 112,
+    type: "fillin",
+    text: "Výskumná metóda založená na sledovaní činnosti ľudí, jej zaznamenávaní, analýze a vyhodnotení sa nazýva?",
+    accepted: ["pozorovanie"],
   },
   {
     id: 100,
