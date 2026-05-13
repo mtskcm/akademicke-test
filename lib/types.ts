@@ -70,7 +70,10 @@ export type QuestionAnswer =
 
 export type Mode = "training" | "exam";
 
+export type SubjectId = "akademicke" | "spravanie";
+
 export type TestState = {
+  subjectId: SubjectId;
   mode: Mode;
   currentIndex: number;
   answers: Record<number, QuestionAnswer>;

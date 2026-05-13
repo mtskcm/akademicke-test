@@ -3,13 +3,19 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { questions as ALL_QUESTIONS } from "@/lib/questions";
-import type { Mode, Question, QuestionAnswer, TestState } from "@/lib/types";
+import type {
+  Mode,
+  Question,
+  QuestionAnswer,
+  SubjectId,
+  TestState,
+} from "@/lib/types";
 import { loadProgress, saveProgress, clearProgress } from "@/lib/storage";
 import { gradeQuestion, isAnswered } from "@/lib/grading";
 import { shuffle } from "@/lib/shuffle";
 import { buildOptionOrders } from "@/lib/optionOrders";
 import { groupKeyForQuestion } from "@/lib/duplicates";
+import { DEFAULT_SUBJECT_ID, getSubject, type Subject } from "@/lib/subjects";
 import { QuestionCard } from "@/components/QuestionCard";
 import { ProgressBar } from "@/components/ProgressBar";
 import { QuestionGrid } from "@/components/QuestionGrid";
@@ -23,24 +29,24 @@ const CLOSED_TYPES: ReadonlySet<Question["type"]> = new Set([
 ]);
 
 const pickQuestions = (
+  subject: Subject,
   count: number | null,
   shuffled: boolean,
   closedOnly: boolean,
 ): Question[] => {
   const pool = closedOnly
-    ? ALL_QUESTIONS.filter((q) => CLOSED_TYPES.has(q.type))
-    : ALL_QUESTIONS;
+    ? subject.questions.filter((q) => CLOSED_TYPES.has(q.type))
+    : subject.questions;
 
   if (!count) {
     return shuffled ? shuffle(pool) : pool;
   }
 
-  // Pick `count` random questions but ensure no two share a duplicate group
   const candidates = shuffle(pool);
   const seenGroups = new Set<string>();
   const picked: Question[] = [];
   for (const q of candidates) {
-    const key = groupKeyForQuestion(q.id);
+    const key = groupKeyForQuestion(subject.id, q.id);
     if (seenGroups.has(key)) continue;
     seenGroups.add(key);
     picked.push(q);
@@ -50,14 +56,16 @@ const pickQuestions = (
 };
 
 const initialState = (
+  subject: Subject,
   mode: Mode,
   shuffled: boolean,
   count: number | null,
   timeLimitMinutes: number | null,
   closedOnly: boolean,
 ): TestState => {
-  const picked = pickQuestions(count, shuffled, closedOnly);
+  const picked = pickQuestions(subject, count, shuffled, closedOnly);
   return {
+    subjectId: subject.id,
     mode,
     currentIndex: 0,
     answers: {},
@@ -75,8 +83,17 @@ const initialState = (
 const isAutoSubmit = (type: Question["type"]) =>
   type === "truefalse" || type === "single";
 
+const ACCENT_BADGE: Record<Subject["accent"], string> = {
+  brand: "bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300",
+  teal: "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300",
+};
+
 function TestRunner() {
   const searchParams = useSearchParams();
+  const requestedSubjectId =
+    (searchParams.get("subject") as SubjectId | null) ?? DEFAULT_SUBJECT_ID;
+  const subject =
+    getSubject(requestedSubjectId) ?? getSubject(DEFAULT_SUBJECT_ID)!;
   const requestedMode = (searchParams.get("mode") as Mode) || "training";
   const requestedShuffle = searchParams.get("shuffle") === "1";
   const requestedCountRaw = searchParams.get("count");
@@ -99,12 +116,13 @@ function TestRunner() {
     return () => clearInterval(id);
   }, [state]);
 
-  const remainingMs = state && state.timeLimitMinutes
-    ? Math.max(
-        0,
-        state.startedAt + state.timeLimitMinutes * 60_000 - now,
-      )
-    : null;
+  const remainingMs =
+    state && state.timeLimitMinutes
+      ? Math.max(
+          0,
+          state.startedAt + state.timeLimitMinutes * 60_000 - now,
+        )
+      : null;
 
   useEffect(() => {
     if (remainingMs === 0 && state && !state.finished) {
@@ -113,20 +131,21 @@ function TestRunner() {
   }, [remainingMs, state]);
 
   useEffect(() => {
-    const saved = loadProgress();
+    const saved = loadProgress(subject.id);
     if (saved && !saved.finished) {
       const fixed: TestState = {
         ...saved,
+        subjectId: subject.id,
         order:
           saved.order && saved.order.length > 0
             ? saved.order
-            : ALL_QUESTIONS.map((q) => q.id),
+            : subject.questions.map((q) => q.id),
         shuffled: saved.shuffled ?? false,
         submittedIds: saved.submittedIds ?? [],
         optionOrders:
           saved.optionOrders && Object.keys(saved.optionOrders).length > 0
             ? saved.optionOrders
-            : buildOptionOrders(ALL_QUESTIONS, saved.shuffled ?? false),
+            : buildOptionOrders(subject.questions, saved.shuffled ?? false),
         count: saved.count ?? null,
         timeLimitMinutes: saved.timeLimitMinutes ?? null,
       };
@@ -134,6 +153,7 @@ function TestRunner() {
     } else {
       setState(
         initialState(
+          subject,
           requestedMode,
           requestedShuffle,
           requestedCount,
@@ -144,6 +164,7 @@ function TestRunner() {
     }
     setHydrated(true);
   }, [
+    subject,
     requestedMode,
     requestedShuffle,
     requestedCount,
@@ -157,11 +178,11 @@ function TestRunner() {
 
   const questionsToShow = useMemo(() => {
     if (!state) return [];
-    const byId = new Map(ALL_QUESTIONS.map((q) => [q.id, q]));
+    const byId = new Map(subject.questions.map((q) => [q.id, q]));
     return state.order
       .map((id) => byId.get(id))
       .filter((q): q is Question => !!q);
-  }, [state]);
+  }, [state, subject]);
 
   const current = questionsToShow[state?.currentIndex ?? 0];
 
@@ -207,9 +228,10 @@ function TestRunner() {
   };
 
   const restart = () => {
-    clearProgress();
+    clearProgress(subject.id);
     setState(
       initialState(
+        subject,
         state?.mode ?? "training",
         state?.shuffled ?? false,
         state?.count ?? null,
@@ -221,9 +243,10 @@ function TestRunner() {
 
   const reshuffle = () => {
     if (!state) return;
-    clearProgress();
+    clearProgress(subject.id);
     setState(
       initialState(
+        subject,
         state.mode,
         true,
         state.count,
@@ -235,9 +258,10 @@ function TestRunner() {
 
   const unshuffle = () => {
     if (!state) return;
-    clearProgress();
+    clearProgress(subject.id);
     setState(
       initialState(
+        subject,
         state.mode,
         false,
         state.count,
@@ -250,14 +274,14 @@ function TestRunner() {
   const retryWrong = () => {
     if (!state) return;
     const askedIds = new Set(state.order);
-    const wrong = ALL_QUESTIONS.filter(
+    const wrong = subject.questions.filter(
       (q) => askedIds.has(q.id) && !gradeQuestion(q, state.answers[q.id]),
     );
     if (wrong.length === 0) return;
-    clearProgress();
+    clearProgress(subject.id);
     const wrongIds = wrong.map((q) => q.id);
     setState({
-      ...initialState("training", false, null, null, false),
+      ...initialState(subject, "training", false, null, null, false),
       order: state.shuffled ? shuffle(wrongIds) : wrongIds,
       shuffled: state.shuffled,
       optionOrders: buildOptionOrders(wrong, state.shuffled),
@@ -314,20 +338,32 @@ function TestRunner() {
   const timerLow = remainingMs !== null && remainingMs <= 60_000;
   const timerVeryLow = remainingMs !== null && remainingMs <= 10_000;
 
+  const subjectBadge = (
+    <span
+      className={`text-xs px-2.5 py-1 rounded-full font-medium ${ACCENT_BADGE[subject.accent]}`}
+      title={subject.name}
+    >
+      {subject.emoji} {subject.shortName}
+    </span>
+  );
+
   if (state.finished) {
     return (
       <main className="min-h-screen px-4 py-8 sm:py-12">
         <div className="max-w-3xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
             <Link
               href="/"
               className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-600 transition-colors"
             >
               ← Domov
             </Link>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-              Vyhodnotené
-            </span>
+            <div className="flex items-center gap-2">
+              {subjectBadge}
+              <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                Vyhodnotené
+              </span>
+            </div>
           </div>
           <Results
             questions={questionsToShow}
@@ -355,13 +391,16 @@ function TestRunner() {
   return (
     <main className="min-h-screen px-4 py-6 sm:py-10">
       <div className="max-w-3xl mx-auto">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <Link
-            href="/"
-            className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-600 transition-colors flex-shrink-0"
-          >
-            ← Domov
-          </Link>
+        <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="text-sm text-slate-600 dark:text-slate-400 hover:text-brand-600 transition-colors flex-shrink-0"
+            >
+              ← Domov
+            </Link>
+            {subjectBadge}
+          </div>
           <div className="flex items-center gap-2 flex-wrap justify-end">
             {remainingMs !== null && (
               <span
@@ -513,3 +552,4 @@ export default function TestPage() {
     </Suspense>
   );
 }
+

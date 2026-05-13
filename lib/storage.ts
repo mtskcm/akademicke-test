@@ -1,12 +1,11 @@
-import type { TestState } from "./types";
+import type { SubjectId, TestState } from "./types";
 
-const KEY = "akademicke-test-v1";
+const LEGACY_KEY = "akademicke-test-v1";
+const keyFor = (subjectId: SubjectId) => `akademicke-test-v1:${subjectId}`;
 
-export const loadProgress = (): TestState | null => {
-  if (typeof window === "undefined") return null;
+const parseState = (raw: string | null): TestState | null => {
+  if (!raw) return null;
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw);
     if (
       parsed &&
@@ -22,19 +21,43 @@ export const loadProgress = (): TestState | null => {
   }
 };
 
+export const loadProgress = (subjectId: SubjectId): TestState | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const fresh = parseState(window.localStorage.getItem(keyFor(subjectId)));
+    if (fresh) return fresh;
+    // Backward compat: starý kľúč bez subject suffixu — patrí akademickému
+    if (subjectId === "akademicke") {
+      const legacy = parseState(window.localStorage.getItem(LEGACY_KEY));
+      if (legacy) {
+        const migrated: TestState = { ...legacy, subjectId: "akademicke" };
+        window.localStorage.setItem(keyFor("akademicke"), JSON.stringify(migrated));
+        window.localStorage.removeItem(LEGACY_KEY);
+        return migrated;
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export const saveProgress = (state: TestState): void => {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(KEY, JSON.stringify(state));
+    window.localStorage.setItem(keyFor(state.subjectId), JSON.stringify(state));
   } catch {
     // ignore quota errors
   }
 };
 
-export const clearProgress = (): void => {
+export const clearProgress = (subjectId: SubjectId): void => {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.removeItem(KEY);
+    window.localStorage.removeItem(keyFor(subjectId));
+    if (subjectId === "akademicke") {
+      window.localStorage.removeItem(LEGACY_KEY);
+    }
   } catch {
     // ignore
   }

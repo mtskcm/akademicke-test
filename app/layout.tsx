@@ -8,9 +8,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Akademický test",
+  title: "Skúškové testy · PdF Prešov",
   description:
-    "Interaktívny test z akademického písania bakalárskej práce — 100 otázok",
+    "Interaktívne testy pre prípravu na skúšky — akademické písanie, problémové správanie a ďalšie.",
 };
 
 export default function RootLayout({
