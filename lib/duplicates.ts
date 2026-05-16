@@ -27,6 +27,10 @@ const DUPLICATE_GROUPS: Record<SubjectId, ReadonlyArray<ReadonlyArray<number>>> 
   spravanie: [
     [11, 25], // „Pri požiadavke → Únik" — dve rôzne formulácie tej istej otázky
   ],
+  patopsychologia: [
+    [18, 25], // „Porucha správania je" — dve verzie tej istej otázky (3 vs 2 správne)
+    [12, 28], // pamäť/pozornosť triedenie informácií (multi-choice vs T/F variant)
+  ],
 };
 
 const groupMaps = new Map<SubjectId, Map<number, string>>();

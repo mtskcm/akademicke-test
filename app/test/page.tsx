@@ -86,6 +86,7 @@ const isAutoSubmit = (type: Question["type"]) =>
 const ACCENT_BADGE: Record<Subject["accent"], string> = {
   brand: "bg-brand-100 dark:bg-brand-950 text-brand-700 dark:text-brand-300",
   teal: "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300",
+  amber: "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
 };
 
 function TestRunner() {

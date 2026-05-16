@@ -1,8 +1,9 @@
 import type { Question, SubjectId } from "./types";
 import { questions as academicQuestions } from "./questions/akademicke";
 import { questions as behaviorQuestions } from "./questions/spravanie";
+import { questions as patopsychQuestions } from "./questions/patopsychologia";
 
-export type SubjectAccent = "brand" | "teal";
+export type SubjectAccent = "brand" | "teal" | "amber";
 
 export type Subject = {
   id: SubjectId;
@@ -43,6 +44,19 @@ export const SUBJECTS: Subject[] = [
     questions: behaviorQuestions,
     examCount: 30,
     examMinutes: 25,
+  },
+  {
+    id: "patopsychologia",
+    name: "Patopsychológia",
+    shortName: "Patopsychológia",
+    description:
+      "Mentálna retardácia, deprivácia, vzťahové väzby, poruchy správania a rodinné vplyvy.",
+    facultyLabel: "Pedagogická fakulta · Prešov · Dubayová",
+    emoji: "🧩",
+    accent: "amber",
+    questions: patopsychQuestions,
+    examCount: 25,
+    examMinutes: 20,
   },
 ];
 

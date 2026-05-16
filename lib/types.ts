@@ -70,7 +70,7 @@ export type QuestionAnswer =
 
 export type Mode = "training" | "exam";
 
-export type SubjectId = "akademicke" | "spravanie";
+export type SubjectId = "akademicke" | "spravanie" | "patopsychologia";
 
 export type TestState = {
   subjectId: SubjectId;

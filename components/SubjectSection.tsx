@@ -40,6 +40,20 @@ const ACCENT_CLASSES = {
     continueText: "text-teal-900 dark:text-teal-200",
     continueButton: "bg-teal-600 hover:bg-teal-700 text-white",
   },
+  amber: {
+    chip: "bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300",
+    accentText: "group-hover:text-amber-600",
+    accentBorder: "hover:border-amber-400",
+    examBorder: "border-amber-300 dark:border-amber-800 hover:border-amber-500",
+    examBg: "from-amber-50 to-white dark:from-amber-950 dark:to-slate-900",
+    examTextHover: "group-hover:text-amber-700",
+    examCountBadge: "bg-amber-600 text-white",
+    accentCheckbox: "accent-amber-600",
+    continueBox:
+      "border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30",
+    continueText: "text-amber-900 dark:text-amber-200",
+    continueButton: "bg-amber-600 hover:bg-amber-700 text-white",
+  },
 } as const;
 
 export const SubjectSection = ({ subject }: Props) => {
